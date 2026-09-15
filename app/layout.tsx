@@ -6,6 +6,8 @@ import {Bad_Script} from "next/font/google";
 import { Alex_Brush } from "next/font/google";
 import Footer from "@/components/Footer";
 import { Cantora_One } from "next/font/google";
+import { CartProvider } from "@/context/CartContext";
+import CartToast from "@/components/CartToast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,9 +50,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   className={`${geistSans.variable} ${geistMono.variable} ${badScript.variable} ${alexBrush.variable} ${cantoraOne.variable} h-full antialiased`}
 >
   <body className="min-h-screen flex flex-col">
-  <Header />
-  <main className="flex-1">{children}</main>
-  <Footer />
+  <CartProvider>
+    <Header />
+    <main className="flex-1">{children}</main>
+    <Footer />
+    <CartToast />
+  </CartProvider>
 </body>
     </html>
   );

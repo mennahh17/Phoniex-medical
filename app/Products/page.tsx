@@ -1,31 +1,72 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState , useEffect } from "react";
-
-async function getProducts () {
-    const response = await fetch ("http://192.168.0.108:3000/api/products");
-
-    return response.json();
-}
+import { useState, useEffect } from "react";
+import { useCart } from "@/context/CartContext";
 
 type TProduct = {
     id: number;
     name: string;
+    price: number;
+    description: string | null;
+    imageUrl: string | null;
 };
 
 export default function Product() {
     const [searchTerm, setSearchTerm] = useState("");
     const [products, setProducts] = useState<TProduct[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    const [name, setName] = useState("");
+    const [price, setPrice] = useState("");
+    const [description, setDescription] = useState("");
+    const [imageUrl, setImageUrl] = useState("");
+
+    const { addToCart } = useCart();
 
     useEffect(() => {
         async function getProducts() {
-            const response = await fetch("http://192.168.0.108:3000/api/products");
-            const data = await response.json();
-            setProducts(data);
+            try {
+                const response = await fetch("http://localhost:3000/products");
+                if (!response.ok) throw new Error("Failed to fetch products");
+                const data = await response.json();
+                setProducts(data);
+            } catch (err) {
+                setError("Could not load products. Please try again later.");
+            } finally {
+                setLoading(false);
+            }
         }
         getProducts();
     }, []);
+
+    async function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+
+        const response = await fetch("http://localhost:3000/products/sell-request", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                name,
+                price: Number(price),
+                description,
+                imageUrl: imageUrl || null,
+            }),
+        });
+
+        if (response.ok) {
+            alert("Your item has been submitted for review!");
+        }
+
+        setName("");
+        setPrice("");
+        setDescription("");
+        setImageUrl("");
+    }
 
     return(
         <main>
@@ -51,6 +92,14 @@ export default function Product() {
             </div>
             </div>
 
+            {loading && (
+                <p className="text-center text-blue-900 py-10">Loading products...</p>
+            )}
+
+            {error && (
+                <p className="text-center text-red-600 py-10">{error}</p>
+            )}
+
             <div className="grid grid-col-1 sm:grid-cols-2 md:grid-cols-3 gap-6  max-w-6xl mx-auto px-4 py-5">
 
             <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
@@ -69,13 +118,12 @@ export default function Product() {
             </div>
             <div className="p-4">
                     <div className="flex justify-center items-center"> 
-                    <Link href="/Cart">
-                    <div className="bg-white p-5">
-                    <button className="text-white font-semibold cursor-pointer bg-blue-900 rounded-lg shadow-2xl py-3 px-7">
+                    <button
+                        onClick={() => addToCart({ id: 1001, name: "CT Scanner", price: 250000 })}
+                        className="text-white font-semibold cursor-pointer bg-blue-900 rounded-lg shadow-2xl py-3 px-7"
+                    >
                     Add to cart
                     </button>
-                    </div>
-                    </Link>
             </div>
             </div>
             </div>
@@ -95,14 +143,12 @@ export default function Product() {
             </div>
             <div className="p-4">
                     <div className="flex justify-center items-center"> 
-                    <Link href="/Cart">
-                    <div className="bg-white p-5">
-                    <button className="text-white font-semibold cursor-pointer bg-blue-900 rounded-lg shadow-2xl px-7 py-3">
+                    <button
+                        onClick={() => addToCart({ id: 1002, name: "Digital Blood Pressure", price: 450 })}
+                        className="text-white font-semibold cursor-pointer bg-blue-900 rounded-lg shadow-2xl px-7 py-3"
+                    >
                     Add to cart
                     </button>
-                    </div>
-                    </Link>
-                    
                 </div>
             </div>
             </div>
@@ -121,25 +167,97 @@ export default function Product() {
                 </div>
                 <div className="p-4">
                     <div className="flex justify-center items-center"> 
-                    <Link href="/Cart">
-                    <div className="bg-white p-5">
-                    <button className="text-white font-semibold cursor-pointer bg-blue-900 rounded-lg shadow-2xl px-7 py-3">
+                    <button
+                        onClick={() => addToCart({ id: 1003, name: "UltraSound machine", price: 85000 })}
+                        className="text-white font-semibold cursor-pointer bg-blue-900 rounded-lg shadow-2xl px-7 py-3"
+                    >
                     Add to cart
                     </button>
-                    </div>
-                    </Link>
                 </div>
                 </div>
-            </div>
             </div>
 
-            <div>
-                <h1>products:</h1>
-                <ul>
-                    {products.map((product) => (
-                        <li key={product.id}>{product.name}</li>
-                    ))}
-                </ul>
+            {products.map((product) => (
+                <div key={product.id} className="bg-white rounded-xl shadow-2xl overflow-hidden">
+                    <div className="relative h-48 w-full bg-gray-100 flex items-center justify-center">
+                        {product.imageUrl ? (
+                            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                        ) : (
+                            <span className="text-gray-400 text-sm">No image</span>
+                        )}
+                    </div>
+                    <div className="p-4">
+                        <h3 className="font-bold text-blue-900">{product.name}</h3>
+                        <p className="text-sm text-gray-500">{product.description}</p>
+                        <p className="text-blue-900 font-semibold mt-1">{product.price} EGP</p>
+                    </div>
+                    <div className="p-4">
+                        <div className="flex justify-center items-center">
+                            <button
+                                onClick={() => addToCart({ id: product.id, name: product.name, price: product.price })}
+                                className="text-white font-semibold cursor-pointer bg-blue-900 rounded-lg shadow-2xl py-3 px-7"
+                            >
+                                Add to cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            ))}
+
+            </div>
+
+            <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-w-md mx-auto mt-10 mb-10">
+                <div className="relative h-48 w-full bg-gray-100 flex items-center justify-center">
+                    <span className="text-gray-400 text-sm">Product image preview</span>
+                </div>
+
+                <div className="p-4">
+                    <h3 className="font-bold text-blue-900 mb-3">Sell Your Equipment</h3>
+
+                    <form onSubmit={handleSubmit}>
+                        <input
+                            type="text"
+                            placeholder="Product name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                            className="w-full border rounded-lg px-4 py-2 mb-3 text-blue-900"
+                        />
+
+                        <input
+                            type="number"
+                            placeholder="Price"
+                            value={price}
+                            onChange={(e) => setPrice(e.target.value)}
+                            required
+                            className="w-full border rounded-lg px-4 py-2 mb-3 text-blue-900"
+                        />
+
+                        <textarea
+                            placeholder="Description (optional)"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="w-full border rounded-lg px-4 py-2 mb-3 text-blue-900"
+                        />
+
+                        <input
+                            type="text"
+                            placeholder="Image URL (optional)"
+                            value={imageUrl}
+                            onChange={(e) => setImageUrl(e.target.value)}
+                            className="w-full border rounded-lg px-4 py-2 mb-3 text-blue-900"
+                        />
+
+                        <div className="flex justify-center items-center">
+                            <button
+                                type="submit"
+                                className="text-white font-semibold cursor-pointer bg-blue-900 rounded-lg shadow-2xl py-3 px-7"
+                            >
+                                Submit for Review
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
         </main>
