@@ -8,7 +8,7 @@ export const metadata ={
 export default function Home() {
   return (
     <main className="flex-1">
-      <section className="relative w-full h-[300px]">
+      <section className="relative w-full h-[500px]">
         <Image
           src="/img/Gemini_Generated_Image_tc5fm5tc5fm5tc5f.jpeg"
           alt="Shop page banner"

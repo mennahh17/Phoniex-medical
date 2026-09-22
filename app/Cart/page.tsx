@@ -1,9 +1,54 @@
 "use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { Minus, Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+
+
 
 export default function Cart() {
-    const { items, removeFromCart, updateQuantity, total } = useCart();
+    const { items, removeFromCart, updateQuantity, total, clearCart } = useCart();
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    async function handleCheckout() {
+        setLoading(true);
+        setError("");
+
+        try {
+            const response = await fetch("http://localhost:3000/orders", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    items: items.map((item) => ({
+                        productId: item.id,
+                        productName: item.name,
+                        price: item.price,
+                        quantity: item.quantity,
+                    })),
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Checkout failed");
+            }
+
+            clearCart();
+            router.push("/Orders");
+        } catch (err) {
+            setError("Something went wrong. Please make sure you are signed in.");
+        } finally {
+            setLoading(false);
+        }
+
+    }
+
+
 
     return (
         <main className="max-w-6xl mx-auto px-4 py-10">
@@ -59,9 +104,15 @@ export default function Cart() {
                                 <span className="font-semibold text-blue-900">Total</span>
                                 <span className="font-bold text-blue-900">{total} EGP</span>
                             </div>
-                            <button className="w-full bg-blue-900 text-white font-semibold py-3 rounded-lg">
-                                Proceed to Checkout
-                            </button>
+
+                            {error && (
+                                <p className="text-red-600 text-sm mb-3 text-center">{error}</p>
+                            )}
+                            
+                            <Link href ="/Checkout"
+                            className="text-white bg-blue-900 px-5 py-3 font-bold rounded-2xl block flex justify-center">
+                            Processed to Checkout
+                            </Link>
                         </div>
                     </div>
                 </>

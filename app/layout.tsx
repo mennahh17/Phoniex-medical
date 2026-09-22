@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import { Cantora_One } from "next/font/google";
 import { CartProvider } from "@/context/CartContext";
 import CartToast from "@/components/CartToast";
+import { Oleo_Script } from "next/font/google";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,12 @@ const cantoraOne = Cantora_One ({
   subsets:["latin"],
 });
 
+const oleoScript = Oleo_Script ({
+  variable:"--font-oleo-script",
+  weight :"400",
+  subsets:["latin"],
+});
+
 export const metadata: Metadata = {
   title: "Phoniex Medical",
   description: "Buy and sell new and used medical equipment, spare parts, and healthcare technology from trusted suppliers and sellers.",
@@ -47,7 +54,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
   lang="en"
-  className={`${geistSans.variable} ${geistMono.variable} ${badScript.variable} ${alexBrush.variable} ${cantoraOne.variable} h-full antialiased`}
+  className={`${geistSans.variable} ${geistMono.variable} ${badScript.variable} ${alexBrush.variable} ${cantoraOne.variable} ${oleoScript.variable} h-full antialiased`}
 >
   <body className="min-h-screen flex flex-col">
   <CartProvider>
